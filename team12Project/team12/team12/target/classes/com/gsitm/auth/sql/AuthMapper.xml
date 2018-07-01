@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.gsitm.auth.mapper.AuthMapper">
+    <cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"/>
+
+    <resultMap id="EmpVO" type="com.gsitm.reserv.vo.EmpVO"/>
+
+    <select id="getAuthList" resultMap="EmpVO">
+        SELECT
+        emp_no
+        ,emp_name
+        ,roles
+        FROM
+        tb_emp
+        where roles in ('ROLE_AM','ROLE_EM','ROLE_SM')
+    </select>
+
+    <select id="getEmp" resultMap="EmpVO">
+        SELECT
+        e.emp_no
+        ,e.emp_name
+        ,e.dept_no
+        ,d.dept_name
+        FROM
+        tb_emp e
+        JOIN
+        tb_dept d
+        on e.DEPT_NO=d.DEPT_NO
+        where e.roles='ROLE_USER'
+
+    </select>
+
+    <update id="modifyAuth" parameterType="EmpVO">
+        UPDATE tb_emp
+        SET
+        roles = #{roles}
+        WHERE
+        emp_no = #{empNo}
+    </update>
+
+
+    <update id="removeAuth" parameterType="EmpVO">
+        UPDATE tb_emp
+        SET
+        roles = 'ROLE_USER'
+        WHERE
+        emp_no = #{empNo}
+    </update>
+    
+    <update id="budgetMod" parameterType="int">
+        UPDATE TB_BUDGET
+   		   SET BUDGET = #{budget}
+    </update>
+    
+    <select id="getBudget" resultType="int">
+        SELECT BUDGET
+          FROM TB_BUDGET
+    </select>
+</mapper>
+
+
+
+

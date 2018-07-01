@@ -1,0 +1,446 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.gsitm.reserv.mapper.ReservMapper">
+    <cache eviction="FIFO" flushInterval="60000" size="512"
+           readOnly="true"/>
+
+    <resultMap id="ReservVO" type="com.gsitm.reserv.vo.ReservVO"/>
+    <resultMap id="HollydayVO" type="com.gsitm.reserv.vo.HollydayVO"/>
+    <resultMap id="DeptVO" type="com.gsitm.reserv.vo.DeptVO"/>
+    <resultMap id="EmpVO" type="com.gsitm.reserv.vo.EmpVO"/>
+    <resultMap id="FixtureVO" type="com.gsitm.reserv.vo.FixtureVO"/>
+    <resultMap id="SnackVO" type="com.gsitm.reserv.vo.SnackVO"/>
+    <resultMap id="ReservDataVO" type="com.gsitm.reserv.vo.ReservDataVO"/>
+    <resultMap id="OutVO" type="com.gsitm.reserv.vo.OutVO"/>
+    <resultMap id="RoomVO" type="com.gsitm.reserv.vo.RoomVO"/>
+
+    <insert id="insertReserv" parameterType="ReservDataVO"
+            statementType="PREPARED">
+		INSERT INTO tb_reserv (
+		  reserv_no
+          ,room_no
+          ,start_date
+          ,end_date
+          ,reserv_content
+          ,long_term_yn
+          ,price
+          ,RESERV_EMP_NO
+          ,approval_1
+          ,approval_2_1
+          ,approval_2_2
+        ,reserv_content_2
+		) VALUES (
+		  #{reservNo, jdbcType=VARCHAR},#{roomNo, jdbcType=VARCHAR},#{startDate, jdbcType=DATE},#{endDate, jdbcType=DATE},#{reservContent, jdbcType=VARCHAR},#{longTermYn, jdbcType=VARCHAR}
+        ,#{price, jdbcType=INTEGER},#{empNo},#{approval1},#{approval21},#{approval22},#{reservContent2}
+		)
+	</insert>
+
+    <insert id="insertOut" parameterType="OutVO"
+            statementType="PREPARED">
+        INSERT INTO tb_meeting_out (
+		    reserv_no,
+		    name
+		) VALUES (
+          #{reservNo, jdbcType=VARCHAR}
+          ,#{name, jdbcType=VARCHAR}
+        )
+    </insert>
+
+
+    <insert id="insertRsvEmp" parameterType="Map"
+            statementType="PREPARED">
+        INSERT INTO tb_meeting_people (
+          emp_no
+          ,reserv_no
+        ) VALUES (
+          #{empNo, jdbcType=VARCHAR}
+          ,#{reservNo, jdbcType=VARCHAR}
+        )
+    </insert>
+
+    <insert id="insertRsvTeam" parameterType="Map"
+            statementType="PREPARED">
+        INSERT INTO tb_meeting_team (
+          dept_no
+          ,reserv_no
+        ) VALUES (
+          #{deptNo, jdbcType=VARCHAR}
+          ,#{reservNo, jdbcType=VARCHAR}
+        )
+    </insert>
+
+    <insert id="insertRsvFixture" parameterType="Map"
+            statementType="PREPARED">
+        INSERT INTO tb_use_fixture (
+          reserv_no
+          ,fixture_no
+          ,quantity
+        ) VALUES (
+          #{reservNo, jdbcType=VARCHAR}
+          ,#{fixtureNo, jdbcType=VARCHAR}
+          ,#{quantity, jdbcType=INTEGER}
+        )
+    </insert>
+
+    <insert id="insertRsvSnack" parameterType="Map"
+            statementType="PREPARED">
+        INSERT INTO tb_use_snack (
+          reserv_no
+          ,snack_no
+          ,quantity
+        ) VALUES (
+          #{reservNo, jdbcType=VARCHAR}
+          ,#{snackNo, jdbcType=VARCHAR}
+          ,#{quantity, jdbcType=INTEGER}
+        )
+    </insert>
+
+    <!-- id의 경우에는 Mapper.java에 동일하게 사용해야된다. -->
+    <select id="readHollyList" resultMap="HollydayVO">
+		SELECT
+		holiday_name,
+		holiday_date
+		FROM
+		tb_holiday
+	</select>
+
+    <select id="readLongList" resultMap="ReservVO" parameterType="String">
+		SELECT
+    reserv_no,
+    room_no,
+    start_date,
+    end_date,
+    approval_1,
+    approval_2_1,
+    approval_2_2, 
+    fixture_use,
+    snack_use,
+    reserv_content,
+    long_term_yn
+FROM
+    tb_reserv
+    where long_term_yn='Y'
+        and room_no = #{roomNo}
+	</select>
+
+    <select id="readResrved" resultMap="ReservVO" parameterType="Map">
+		SELECT
+		reserv_no,
+		room_no,
+		start_date,
+		end_date,
+		approval_1,
+		approval_2_1,
+    	approval_2_2,
+		fixture_use,
+		LONG_TERM_YN,
+		snack_use
+		FROM
+		tb_reserv
+		WHERE
+		room_no=#{roomNo}
+		and
+		(to_date(#{selectDate},'YYYY.MM.DD.') = to_date(to_char(start_date,'YYYY.MM.DD.'),'YYYY.MM.DD.')
+		or to_date(#{selectDate},'YYYY.MM.DD.') = to_date(to_char(end_date,'YYYY.MM.DD.'),'YYYY.MM.DD.'))
+	</select>
+
+    <select id="readResrvList" resultMap="ReservVO">
+		SELECT
+		reserv_no,
+		room_no,
+		start_date,
+		end_date,
+		approval_1,
+		approval_2_1,
+    	approval_2_2,
+		fixture_use,
+		snack_use
+		FROM
+		tb_reserv
+	</select>
+
+    <select id="readDeptList" resultMap="DeptVO">
+      SELECT
+      dept_no
+      ,dept_name
+      ,dept_budget
+      ,manager_no
+      FROM
+      tb_dept
+    </select>
+
+    <select id="readTeamEmp" resultMap="EmpVO" parameterType="String">
+    SELECT
+    e.emp_no
+   ,e.emp_name
+   ,e.manager_no
+   ,e.phone
+   ,e.email
+   ,e.birthday
+   ,e.dept_no
+FROM
+    tb_emp e
+JOIN
+    tb_dept d
+on e.DEPT_NO=d.DEPT_NO
+where e.dept_no=#{deptNo}
+
+    </select>
+
+    <select id="readFixture" resultMap="FixtureVO" parameterType="String">
+    SELECT
+    r.fixture_no
+   ,r.room_no
+   ,f.fixture_name
+   ,r.quantity
+   ,f.price
+FROM
+    tb_req_fixtures r
+join
+    tb_fixture f
+on r.FIXTURE_NO = f.FIXTURE_NO
+where r.ROOM_NO=#{roomNo}
+
+    </select>
+
+    <select id="readWP" resultType="String" parameterType="String">
+        select wp_no from tb_meeting_room where ROOM_NO=#{roomNo}
+    </select>
+
+    <select id="readSnack" resultMap="SnackVO" parameterType="String">
+        SELECT
+        w.wp_no
+   ,w.snack_no
+   ,s.SNACK_NAME
+   ,w.quantity
+   ,s.price
+FROM
+    tb_wp_snack w
+join tb_snack s
+on
+w.SNACK_NO = s.SNACK_NO
+    where w.wp_no=#{wpNo}
+
+    </select>
+
+    <select id="readSnackList" resultMap="SnackVO">
+        SELECT
+        snack_no
+        ,SNACK_NAME
+        ,price
+        FROM
+        TB_SNACK
+
+    </select>
+
+    <select id="readFixtureList" resultMap="FixtureVO">
+        SELECT
+        fixture_no
+        ,fixture_name
+        ,price
+        FROM
+        tb_fixture
+
+    </select>
+
+    <select id="getReservNo" resultType="int">
+        select RESERV_SEQ.nextval from dual
+    </select>
+
+
+    <select id="getRoomPrice" resultType="int" parameterType="String">
+        SELECT
+    room_price
+FROM
+    tb_meeting_room
+    where room_no = #{roomNo}
+    </select>
+
+    <select id="getFixturePrice" resultType="int" parameterType="String">
+     SELECT
+
+    price
+FROM
+    tb_fixture
+    where fixture_no = #{fixtureNo}
+    </select>
+
+    <select id="getSnackPrice" resultType="int" parameterType="String">
+       SELECT
+    price
+FROM
+    tb_snack
+where snack_no = #{snackNo}
+    </select>
+
+    <select id="getLongCheck" resultType="int" parameterType="ReservDataVO">
+        select count(*) from tb_reserv
+        WHERE 1=1
+        AND room_no = #{roomNo}
+        AND (  start_date <![CDATA[ <= ]]> #{startDate}
+        AND start_date <![CDATA[ <= ]]>  #{endDate}
+        and end_date <![CDATA[ >= ]]> #{startDate}
+        and end_date <![CDATA[ >= ]]> #{endDate}
+        OR start_date BETWEEN  #{startDate} AND  #{endDate}
+        OR end_date BETWEEN  #{startDate} AND  #{endDate})
+
+    </select>
+
+    <select id="getHoliCnt" resultType="int" parameterType="ReservDataVO">
+        select count(*) from tb_holiday where holiday_date between #{startDate} and #{endDate}
+
+    </select>
+
+    <update id="minusFixture" parameterType="Map">
+	UPDATE tb_req_fixtures
+    SET
+        quantity = quantity-#{quantity}
+	WHERE
+    	fixture_no = #{fixtureNo}
+    AND 
+    	room_no = #{roomNo}
+	</update>
+
+    <update id="minusSnack" parameterType="Map">
+		UPDATE tb_wp_snack
+		SET quantity=quantity-#{quantity}
+		WHERE
+		( SELECT
+		    S.WP_NO
+		FROM
+		    tb_wp_snack s
+		JOIN TB_MEETING_ROOM R
+		ON S.WP_NO = R.WP_NO
+		AND R.room_no=#{roomNo}
+		AND S.snack_no = #{snackNo}) = WP_NO
+		and snack_no = #{snackNo}
+	</update>
+
+    <select id="getManagerEmail" parameterType="String" resultType="String">
+		SELECT 
+		email
+		FROM tb_emp
+		where emp_no = (SELECT
+		    D.manager_no
+		FROM
+		    tb_emp E
+		JOIN tb_dept D
+		ON E.DEPT_NO = D.DEPT_NO
+		where E.EMP_NO = #{empNo})
+	</select>
+
+    <select id="getEmail" parameterType="String" resultType="String">
+		SELECT 
+		email
+		FROM tb_emp
+		where emp_no = #{empNo}
+	</select>
+
+    <select id="getDept" parameterType="String" resultType="String">
+        SELECT
+        dept_no
+        FROM tb_emp
+        where emp_no = #{empNo}
+    </select>
+
+    <select id="getMaxPeople" parameterType="String" resultType="int">
+		SELECT
+		    max_people
+		FROM
+		    tb_meeting_room
+		WHERE room_no=#{roomNo}
+	</select>
+
+    <select id="getRoomName" parameterType="String" resultType="String">
+        SELECT
+        room_name
+        FROM
+        tb_meeting_room
+        WHERE room_no=#{roomNo}
+    </select>
+
+    <select id="getPosRoom" resultMap="RoomVO">
+        select
+        room_no
+        ,wp_no
+        ,room_name
+        ,room_comm
+        ,room_kind
+        ,room_price
+        ,room_size
+        ,max_people
+        ,nw_use
+        ,room_stat
+        ,room_addr
+        ,latitude
+        ,longitude
+        ,MAIN_IMG_PATH
+        from
+        TB_MEETING_ROOM
+        where
+        room_no
+        not in
+        (SELECT
+        room_no
+        FROM
+        tb_reserv
+        where (sysdate between start_date and end_date))
+
+    </select>
+
+    <select id="getCurReserv" resultMap="ReservVO" parameterType="String">
+        SELECT
+        reserv_no
+        ,room_no
+        ,start_date
+        ,end_date
+        ,approval_1
+        ,fixture_use
+        ,snack_use
+        ,reserv_content
+        ,long_term_yn
+        ,price
+        ,reserv_emp_no
+        ,approval_2_1
+        ,approval_2_2
+        ,extend
+        FROM
+        tb_reserv
+        where (sysdate BETWEEN start_date and end_date)
+        and reserv_emp_no = #{empNo}
+    </select>
+
+    <update id="extendReserv" parameterType="String">
+        update tb_reserv
+        set end_date = end_date + 30/(24*60), EXTEND='Y'
+        where
+        reserv_no = #{reservNo}
+        and
+        0=
+        (select count(*)
+        from tb_reserv
+        where start_date = (
+        select
+        end_date + 30/(24*60)
+        from tb_reserv
+        where reserv_no =#{reservNo}))
+    </update>
+
+    <select id="searchEmp" parameterType="String" resultMap="EmpVO">
+        SELECT
+        e.emp_no
+        ,e.emp_name
+        ,d.DEPT_NO
+        ,d.DEPT_NAME
+        FROM
+        tb_emp e
+        join tb_dept d
+        on e.DEPT_NO=d.DEPT_NO
+        where e.emp_name like '%'||#{empName}||'%'
+    </select>
+</mapper>
+
+
+
+

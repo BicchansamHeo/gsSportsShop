@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.gsitm.stat.mapper.StatMapper">
+    <cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"/>
+
+	<resultMap id="StatMonthVO" type="com.gsitm.stat.vo.StatMonthVO"/>
+	<resultMap id="StatBestVO" type="com.gsitm.stat.vo.StatBestVO"/>
+	
+    <select id="statMonth" resultMap="StatMonthVO">
+			SELECT MONTH
+				   , MAX(ROOM_NO) KEEP(DENSE_RANK FIRST ORDER BY CNT DESC) ROOM_NO_MAX
+	               , MAX(ROOM_NAME) KEEP(DENSE_RANK FIRST ORDER BY CNT DESC) ROOM_NAME_MAX
+	        	   , MAX(CNT) MAX_CNT
+	        	   , MAX(ROOM_NO) KEEP(DENSE_RANK FIRST ORDER BY CNT) ROOM_NO_MIN
+	        	   , MAX(ROOM_NAME) KEEP(DENSE_RANK FIRST ORDER BY CNT) ROOM_NAME_MIN
+	        	   , MIN(CNT) MIN_CNT
+	    	  FROM ( SELECT T.MONTH
+	            			, T.ROOM_NO
+	            			, T.ROOM_NAME
+	            			, COUNT(R.ROOM_NO) CNT
+	         		   FROM ( SELECT M.MONTH
+	                				 , RM.ROOM_NO
+	            					 , RM.ROOM_NAME
+	               				FROM ( SELECT LPAD(LEVEL, 2, '0') MONTH
+	                 					 FROM DUAL 
+	                 			  <![CDATA[ CONNECT BY LEVEL <= 12) M]]>
+	             		  CROSS JOIN ( SELECT ROOM_NO
+	                    					  , ROOM_NAME 
+	                 					 FROM TB_MEETING_ROOM) RM) T
+	 		 				LEFT JOIN TB_RESERV R
+	          					   ON T.ROOM_NO = R.ROOM_NO AND T.MONTH=TO_CHAR(R.START_DATE,'mm') 
+	        GROUP BY T.MONTH, T.ROOM_NO, T.ROOM_NAME 
+	        ORDER BY 1) 
+	    GROUP BY MONTH
+    </select>
+    <select id="statBest" resultMap="StatBestVO">
+    	SELECT R.ROOM_NO
+		       , R.CNT
+		       , TR.ROOM_NAME
+		  FROM ( SELECT ROOM_NO
+		                , COUNT(*) CNT
+		           FROM TB_RESERV
+		       GROUP BY ROOM_NO) R
+	INNER JOIN TB_MEETING_ROOM TR
+        	ON R.ROOM_NO = TR.ROOM_NO
+    </select>
+</mapper>

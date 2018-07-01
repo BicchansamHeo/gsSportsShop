@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gsitm.pay.mapper.PayMapper">
+	<cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true" />
+
+	<resultMap id="ReservVO" type="com.gsitm.reserv.vo.ReservVO" />
+	<resultMap id="ReservPayVO" type="com.gsitm.pay.vo.ReservPayVO" />
+	<resultMap id="PayDeptVO" type="com.gsitm.pay.vo.PayDeptVO" />
+	<resultMap id="PayEmpVO" type="com.gsitm.pay.vo.PayEmpVO" />
+	<resultMap id="PayRoomVO" type="com.gsitm.pay.vo.PayRoomVO" />
+	<resultMap id="FixtureVO" type="com.gsitm.reserv.vo.FixtureVO"/>
+	<resultMap id="SnackVO" type="com.gsitm.reserv.vo.SnackVO"/>
+
+	<select id="readList" resultMap="ReservPayVO" parameterType="PayEmpVO" statementType="PREPARED">
+		SELECT TR.RESERV_NO,
+			   TR.ROOM_NO,
+			   TO_CHAR(TR.START_DATE,'yyyy"년" mm"월" dd"일" HH24:MI') AS START_DATE,
+			   TO_CHAR(TR.END_DATE,'yyyy"년" mm"월" dd"일" HH24:MI') AS END_DATE,
+		 	   TR.APPROVAL_1,
+		 	   TR.APPROVAL_2_1,
+		 	   TR.APPROVAL_2_2,
+			   TR.FIXTURE_USE,
+			   TR.SNACK_USE,
+			   TR.RESERV_CONTENT,
+			   TR.LONG_TERM_YN,
+			   TMR.ROOM_KIND,
+			   TR.RESERV_EMP_NO
+	      FROM TB_RESERV TR,
+               TB_MEETING_ROOM TMR
+        <if test="role.equals('ROLE_DM')">
+        		, TB_EMP TE
+        </if>
+	     WHERE TR.ROOM_NO = TMR.ROOM_NO
+	    <!-- 팀장일때 -->
+		<if test="role.equals('ROLE_DM')">
+		   AND TE.EMP_NO = TR.RESERV_EMP_NO
+		   AND TE.MANAGER_NO = #{empNo}
+		   AND ((TMR.ROOM_KIND = 'conference' AND TR.LONG_TERM_YN = 'Y')
+		  		  OR TMR.ROOM_KIND = 'education')
+		</if>
+		<!-- 팀장 승인 나고 총무담당자 일 때 -->
+		<if test="role.equals('ROLE_AM')">
+		   <!-- 회의실 장기 일 경우 팀장 승인 나고 총무담당자 일 때 -->
+		   AND ((TR.APPROVAL_1 = 'Y' AND TMR.ROOM_KIND = 'conference' AND TR.LONG_TERM_YN = 'Y')
+ 		   <!-- 교육실 장기 일 경우 팀장 승인 나고 총무담당자 일 때 -->
+		  		 OR (TR.APPROVAL_1 = 'Y' AND TMR.ROOM_KIND = 'education' AND TR.LONG_TERM_YN = 'Y'))
+		</if>
+		<!--  팀장 승인 나고 교육담당자 일 때 -->
+		<if test="role.equals('ROLE_EM')">
+		   <!-- 교육실이 단기 일 경우 팀장 승인 나고 교육담당자 일 때 -->
+		   AND (TR.APPROVAL_1 = 'Y' AND TMR.ROOM_KIND = 'education')
+      ORDER BY 3
+		</if>
+	</select>
+	<select id="reservUserName" resultType="String" parameterType="String" statementType="PREPARED">
+		SELECT EMP_NAME
+		  FROM TB_EMP
+		 WHERE EMP_NO = #{reservEmpNo}
+	</select>	
+	<select id="readReserv" resultMap="ReservPayVO" parameterType="ReservVO" statementType="PREPARED">
+		SELECT TR.RESERV_NO,
+			   TR.ROOM_NO,
+			   TO_CHAR(TR.START_DATE,'yyyy-mm-dd HH24:MI') AS START_DATE,
+			   TO_CHAR(TR.END_DATE,'yyyy-mm-dd HH24:MI') AS END_DATE,
+			   (TR.END_DATE - TR.START_DATE) * 24 AS TOTAL_TIME, 
+		 	   TR.APPROVAL_1,
+		 	   TR.APPROVAL_2_1,
+		 	   TR.APPROVAL_2_2,
+			   TR.FIXTURE_USE,
+			   TR.SNACK_USE,
+			   TR.RESERV_CONTENT,
+			   TR.LONG_TERM_YN,
+			   TR.PRICE,
+			   TR.RESERV_EMP_NO,
+               TE.EMP_NAME AS RESERV_EMP_NAME
+	      FROM TB_RESERV TR,
+               TB_EMP TE
+	     WHERE TR.RESERV_EMP_NO = TE.EMP_NO
+           AND TR.RESERV_NO = #{reservNo}
+	</select>
+	
+	<select id="readEmpReturn" resultMap="PayEmpVO" parameterType="ReservPayVO" statementType="PREPARED">
+		SELECT EMP_NAME,
+			   EMAIL
+	      FROM TB_EMP
+	     WHERE EMP_NO = #{reservEmpNo}
+	</select>
+	
+	<select id="readRoom" resultMap="PayRoomVO" parameterType="ReservPayVO" statementType="PREPARED">
+		SELECT ROOM_NO
+			   , WP_NO
+			   , ROOM_NAME
+			   , ROOM_COMM
+			   , ROOM_KIND
+			   , ROOM_PRICE
+			   , ROOM_SIZE
+			   , MAX_PEOPLE
+			   , NW_USE
+			   , ROOM_STAT
+		  FROM TB_MEETING_ROOM
+		 WHERE ROOM_NO = #{roomNo}
+	</select>
+	
+	<select id="readDept" resultMap="PayDeptVO" parameterType="ReservPayVO" statementType="PREPARED">
+		SELECT *
+		  FROM TB_MEETING_TEAM TMT
+		       , TB_DEPT TD
+		 WHERE TMT.RESERV_NO = #{reservNo}
+		   AND TMT.DEPT_NO = TD.DEPT_NO
+	</select>
+	<select id="adminEmail" resultType="String" parameterType="ReservPayVO" statementType="PREPARED">
+		SELECT EMAIL
+		  FROM TB_EMP
+		 WHERE ROLES = 'ROLE_AM' OR ROLES = 'ROLE_EM'
+	</select>	
+	<select id="adminEmailEM" resultType="String" parameterType="ReservPayVO" statementType="PREPARED">
+		SELECT EMAIL
+		  FROM TB_EMP
+		 WHERE ROLES = 'ROLE_EM'
+	</select>	
+	<select id="adminEmailAM" resultType="String" parameterType="ReservPayVO" statementType="PREPARED">
+		SELECT EMAIL
+		  FROM TB_EMP
+		 WHERE ROLES = 'ROLE_AM'
+	</select>	
+	<select id="readEmp" resultMap="PayEmpVO" parameterType="ReservPayVO" statementType="PREPARED">
+		SELECT te.emp_name
+			   , te.emp_no
+			   , te.phone
+			   , te.email
+		  FROM tb_meeting_people TMP
+			    , TB_EMP TE
+	     WHERE tmp.RESERV_NO = #{reservNo}
+		   AND TMP.emp_no = TE.emp_no
+	</select>
+	<select id="readFixture" resultMap="FixtureVO" parameterType="ReservPayVO" statementType="PREPARED">
+		SELECT R.FIXTURE_NO
+			   , R.ROOM_NO
+			   , F.FIXTURE_NAME
+			   , R.QUANTITY
+			   , F.PRICE
+		  FROM TB_REQ_FIXTURES R
+		  JOIN TB_FIXTURE F
+			ON R.FIXTURE_NO = F.FIXTURE_NO
+	     WHERE R.ROOM_NO = #{roomNo}
+	</select>
+	<select id="readSnack" resultMap="SnackVO" parameterType="ReservPayVO" statementType="PREPARED">
+	 SELECT W.WP_NO
+	   		, W.SNACK_NO
+	   		, S.SNACK_NAME
+	   		, W.QUANTITY
+	   		, S.PRICE
+	   FROM TB_WP_SNACK W
+	   JOIN TB_SNACK S
+	     ON W.SNACK_NO = S.SNACK_NO
+	  WHERE W.WP_NO = (SELECT WP_NO
+                         FROM TB_MEETING_ROOM
+                        WHERE ROOM_NO = #{roomNo})
+	</select>
+	<!-- 결재 승인 처리 하는 UPDATE 쿼리문 -->
+	<update id="approvalModAM" parameterType="ReservPayVO" statementType="PREPARED">
+	     	<!-- 팀장일때 승인 -->
+			<if test='role.equals("ROLE_DM")'>
+				UPDATE TB_RESERV
+		   		   SET APPROVAL_1 = 'Y'
+			</if>
+	     	<!-- 총무담당자이고 장기 일때 -->
+			<if test='role.equals("ROLE_AM") and longTermYn.equals("Y")'>
+				<!-- 회의실 일 경우 최종 승인 -->
+				<if test='roomKind.equals("conference")'>
+					UPDATE TB_RESERV
+		   			   SET APPROVAL_2_1 = 'Y'
+				  	      , APPROVAL_2_2 = 'Y'
+				</if>
+		     	<!-- 총무담당자이고 교육실 장기 일때는 최종승인 -->
+				<if test='roomKind.equals("education")'>
+					UPDATE TB_RESERV
+		   			   SET APPROVAL_2_2 = 'Y'
+				</if>				
+			</if>
+		 WHERE RESERV_NO = #{reservNo}
+		   AND RESERV_EMP_NO = #{reservEmpNo}
+	</update>
+	<!-- 결재 승인 처리 하는 UPDATE 쿼리문 -->
+	<update id="approvalModEM" parameterType="ReservPayVO" statementType="PREPARED">
+	     	<!-- 교육담당자이고 일때 -->
+			<if test='role.equals("ROLE_EM") and roomKind.equals("education")'>
+				<!-- 단기일 때는 최종 승인 -->
+				<if test='longTermYn.equals("N")'>
+					UPDATE TB_RESERV
+		   			   SET APPROVAL_2_1 = 'Y'
+				  	       , APPROVAL_2_2 = 'Y'
+				</if>
+		     	<!-- 교육담당자이고 장기일때 승인 -->
+				<if test='longTermYn.equals("Y")'>
+					UPDATE TB_RESERV
+		   			   SET APPROVAL_2_1 = 'Y'
+				</if>
+			</if>
+		 WHERE RESERV_NO = #{reservNo}
+		   AND RESERV_EMP_NO = #{reservEmpNo}
+	</update>
+	<!-- 반려(팀장) 처리 하는 UPDATE 쿼리문 -->
+	<update id="returnModDM" parameterType="ReservPayVO" statementType="PREPARED">
+	     DELETE 
+	       FROM TB_RESERV
+		  WHERE RESERV_NO = #{reservNo}
+		    AND RESERV_EMP_NO = #{reservEmpNo}
+	</update>
+	<!-- 반려(교육담당자, 총무담당자가) 처리 하는 UPDATE 쿼리문 -->
+	<update id="returnMod" parameterType="ReservPayVO" statementType="PREPARED">
+	    UPDATE TB_RESERV
+		   SET APPROVAL_1 = 'N'
+		       , APPROVAL_2_1 = 'N'
+		       , APPROVAL_2_2 = 'N'
+		 WHERE RESERV_NO = #{reservNo}
+		   AND RESERV_EMP_NO = #{reservEmpNo}
+	</update>
+</mapper>

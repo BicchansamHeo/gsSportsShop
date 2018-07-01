@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+    <settings>
+        <setting name="cacheEnabled" value="true"/>
+        <setting name="multipleResultSetsEnabled" value="true"/>
+        <setting name="defaultStatementTimeout" value="25"/>
+        <setting name="autoMappingBehavior" value="PARTIAL"/>
+        <setting name="mapUnderscoreToCamelCase" value="true"/>
+    </settings>
+    <typeAliases>
+        <typeAlias alias="ReservVO" type="com.gsitm.reserv.vo.ReservVO"/>
+        <typeAlias alias="HollydayVO" type="com.gsitm.reserv.vo.HollydayVO"/>
+        <typeAlias alias="DeptVO" type="com.gsitm.reserv.vo.DeptVO"/>
+        <typeAlias alias="EmpVO" type="com.gsitm.reserv.vo.EmpVO"/>
+        <typeAlias alias="FixtureVO" type="com.gsitm.reserv.vo.FixtureVO"/>
+        <typeAlias alias="SnackVO" type="com.gsitm.reserv.vo.SnackVO"/>
+        <typeAlias alias="RoomVO" type="com.gsitm.reserv.vo.RoomVO"/>
+        <typeAlias alias="ReservDataVO" type="com.gsitm.reserv.vo.ReservDataVO"/>
+        <typeAlias alias="ReservPayVO" type="com.gsitm.pay.vo.ReservPayVO"/>
+
+        <typeAlias alias="PayRoomVO" type="com.gsitm.pay.vo.PayRoomVO"/>
+        <typeAlias alias="PayDeptVO" type="com.gsitm.pay.vo.PayDeptVO"/>
+        <typeAlias alias="PayEmpVO" type="com.gsitm.pay.vo.PayEmpVO"/>
+
+        <typeAlias alias="UserVO" type="com.gsitm.login.vo.UserVO"/>
+        <typeAlias alias="FixVO" type="com.gsitm.roommanage.vo.FixVO"/>
+ 		<typeAlias alias="AddFixVO" type="com.gsitm.roommanage.vo.AddFixVO"/>
+ 		<typeAlias alias="ImgVO" type="com.gsitm.roommanage.vo.ImgVO"/>
+ 		<typeAlias alias="CountVO" type="com.gsitm.roommanage.vo.CountVO"/>
+ 		<typeAlias alias="GetFixVO" type="com.gsitm.roommanage.vo.GetFixVO"/>  
+ 		<typeAlias alias="GetConfNameVO" type="com.gsitm.roommanage.vo.GetConfNameVO"/>  
+ 		<typeAlias alias="PagingVO" type="com.gsitm.roommanage.vo.PagingVO"/>  
+ 		<typeAlias alias="UdConfVO" type="com.gsitm.roommanage.vo.UdConfVO"/>
+        <typeAlias alias="ConfVO" type="com.gsitm.roommanage.vo.ConfVO"/>
+        <typeAlias alias="SiteVO" type="com.gsitm.roommanage.vo.SiteVO"/>
+
+        <typeAlias alias="BoardVO" type="com.gsitm.board.vo.BoardVO"/>
+
+        <typeAlias alias="BatchDeptVO" type="com.gsitm.batch.vo.BatchDeptVO"/>
+    </typeAliases>
+    <mappers>
+    	<mapper resource="com/gsitm/roommanage/sql/ManageMapper.xml"/>
+        <mapper resource="com/gsitm/reserv/sql/ReservMapper.xml"/>
+        <mapper resource="com/gsitm/pay/sql/PayMapper.xml"/>
+        <mapper resource="com/gsitm/login/sql/LoginMapper.xml"/>
+        <mapper resource="com/gsitm/mypage/sql/MpgMapper.xml"/>
+        <mapper resource="com/gsitm/batch/sql/BatchMapper.xml"/>
+        <mapper resource="com/gsitm/auth/sql/AuthMapper.xml"/>
+        <mapper resource="com/gsitm/board/sql/BoardMapper.xml"/>
+        <mapper resource="com/gsitm/stat/sql/StatMapper.xml"/>
+    </mappers>
+
+</configuration> 

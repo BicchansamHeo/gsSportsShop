@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gsitm.batch.mapper.BatchMapper">
+    <cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"/>
+	<resultMap id="ReservPayVO" type="com.gsitm.pay.vo.ReservPayVO"/>
+	<resultMap id="BatchDeptVO" type="com.gsitm.batch.vo.BatchDeptVO"/>
+	<resultMap id="PayEmpVO" type="com.gsitm.pay.vo.PayEmpVO"/>
+	
+    <select id="reservList" resultMap="ReservPayVO" parameterType="String">
+	    SELECT TR.RESERV_NO,
+			   TR.ROOM_NO,
+			   TO_CHAR(TR.START_DATE,'yyyy"년" mm"월" dd"일" HH24:MI') AS START_DATE,
+			   TO_CHAR(TR.END_DATE,'yyyy"년" mm"월" dd"일" HH24:MI') AS END_DATE,
+		 	   TR.APPROVAL_1,
+		 	   TR.APPROVAL_2_1,
+		 	   TR.APPROVAL_2_2,
+			   TR.FIXTURE_USE,
+			   TR.SNACK_USE,
+			   TR.RESERV_CONTENT,
+			   TR.LONG_TERM_YN,
+			   TMR.ROOM_KIND,
+			   TR.PRICE,
+			   TR.RESERV_EMP_NO
+	      FROM TB_RESERV TR,
+               TB_MEETING_ROOM TMR
+	     WHERE TR.ROOM_NO = TMR.ROOM_NO
+	       AND TO_CHAR(END_DATE,'YYYY-MM-DD HH24:MI') = 
+	      	   TO_CHAR(TO_DATE(#{data},'YYYY-MM-DD HH24:MI'),'YYYY-MM-DD HH24:MI')
+	</select>
+    <select id="cancelList" resultMap="ReservPayVO" parameterType="String">
+		SELECT TR.RESERV_NO,
+			   TR.ROOM_NO,
+			   TO_CHAR(TR.START_DATE,'yyyy"년" mm"월" dd"일" HH24:MI') AS START_DATE,
+			   TO_CHAR(TR.END_DATE,'yyyy"년" mm"월" dd"일" HH24:MI') AS END_DATE,
+		 	   TR.APPROVAL_1,
+		 	   TR.APPROVAL_2_1,
+		 	   TR.APPROVAL_2_2,
+			   TR.FIXTURE_USE,
+			   TR.SNACK_USE,
+			   TR.RESERV_CONTENT,
+			   TR.LONG_TERM_YN,
+			   TMR.ROOM_KIND,
+			   TR.PRICE,
+			   TR.RESERV_EMP_NO,
+               TE.EMAIL
+	      FROM TB_RESERV TR,
+               TB_MEETING_ROOM TMR,
+               TB_EMP TE
+	     WHERE TR.ROOM_NO = TMR.ROOM_NO
+           AND TR.RESERV_EMP_NO = TE.EMP_NO
+	       AND TO_CHAR(START_DATE,'YYYY-MM-DD HH24:MI') = 
+	      	   TO_CHAR(TO_DATE(#{data},'YYYY-MM-DD HH24:MI'),'YYYY-MM-DD HH24:MI')
+           AND (TR.APPROVAL_1 = 'N' OR TR.APPROVAL_2_1 = 'N' OR TR.APPROVAL_2_2 = 'N')
+	</select>
+    <select id="deptList" resultMap="BatchDeptVO" parameterType="ReservVO">
+		 SELECT DEPT_NO,
+    			RESERV_NO
+		   FROM TB_MEETING_TEAM
+          WHERE RESERV_NO = #{reservNo}
+	</select>
+    <select id="masterView" resultMap="PayEmpVO" parameterType="String">
+		 SELECT TE.EMP_NAME
+			   , TE.EMP_NO
+			   , TE.PHONE
+			   , TE.EMAIL
+		  FROM TB_EMP TE
+          WHERE ROLES = #{role}
+	</select>
+    <select id="teamManagerView" resultMap="PayEmpVO" parameterType="ReservPayVO">
+		 SELECT TE.EMP_NO
+    		    ,TE.EMP_NAME
+			    , TE.EMP_NO
+			    , TE.MANAGER_NO
+			    , TE.PHONE
+			    , TE.EMAIL
+		   FROM TB_EMP TE
+          WHERE TE.EMP_NO = ( SELECT MANAGER_NO
+		                        FROM TB_EMP
+          					   WHERE EMP_NO = #{reservEmpNo}
+          					) 
+	</select>
+	<update id="reservMod" parameterType="BatchDeptVO" statementType="PREPARED">
+		UPDATE TB_DEPT
+		   SET DEPT_BUDGET = DEPT_BUDGET - #{price}
+		 WHERE DEPT_NO = (SELECT DEPT_NO
+		                    FROM TB_MEETING_TEAM
+		                   WHERE RESERV_NO = #{reservNo}
+		                     AND DEPT_NO = #{deptNo})
+	</update>
+	<update id="reservDel" parameterType="ReservPayVO" statementType="PREPARED">
+		DELETE
+		  FROM TB_RESERV
+		 WHERE RESERV_NO = #{reservNo}
+	</update>
+	<update id="autoBudget" parameterType="int" statementType="PREPARED">
+		UPDATE TB_DEPT
+		   SET DEPT_BUDGET = DEPT_BUDGET + (SELECT BUDGET
+		                                      FROM TB_BUDGET)
+	</update>
+</mapper>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:jdbc="http://www.springframework.org/schema/jdbc" xmlns:jee="http://www.springframework.org/schema/jee"
+	xmlns:tx="http://www.springframework.org/schema/tx" xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee-3.1.xsd
+		http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc-3.0.xsd
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.1.xsd
+		http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-3.1.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.0.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.1.xsd
+		http://www.springframework.org/schema/task 
+		http://www.springframework.org/schema/task/spring-task-3.2.xsd">
+		
+	<context:component-scan base-package="com.gsitm.batch" />
+	
+ 	<bean id="ExBatchJob" class="com.gsitm.batch.ExBatchJob"/>
+	
+	<task:scheduler id="scheduler" pool-size="25"/>
+	<task:executor id="executorWithPoolSizeRange" pool-size="5-25" queue-capacity="25" rejection-policy="CALLER_RUNS"/>
+	
+	<task:scheduled-tasks scheduler="scheduler">
+	    <!-- 끝나는 시간 맞춰서 자동 비용처리 -->
+	    <!-- 매 30분마다 실행 -->
+	    <task:scheduled ref="ExBatchJob" method="autoPay" cron="0 30 * * * *"/>
+	    <!-- 20분 전 까지 승인이 안날시 자동 취소 처리 -->
+	    <!-- 매 10분, 40분마다 실행 -->
+	    <task:scheduled ref="ExBatchJob" method="autoCancel" cron="0 10/30 * * * *"/>
+	    <!-- 매월 1일마다 예산 처리 -->
+	    <task:scheduled ref="ExBatchJob" method="autoBudget" cron="0 0 0 1 * ?"/>
+	</task:scheduled-tasks>	
+</beans>

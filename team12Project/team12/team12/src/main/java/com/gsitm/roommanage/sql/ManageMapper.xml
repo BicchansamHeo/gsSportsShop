@@ -1,0 +1,366 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.gsitm.roommanage.mapper.ManageMapper">
+	<resultMap id="ConfVO" type="com.gsitm.roommanage.vo.ConfVO" />
+	<resultMap id="SiteVO" type="com.gsitm.roommanage.vo.SiteVO" />
+	<resultMap id="FixVO" type="com.gsitm.roommanage.vo.FixVO" />
+	<resultMap id="GetFixVO"
+		type="com.gsitm.roommanage.vo.GetFixVO" />
+	<resultMap id="AddFixVO"
+		type="com.gsitm.roommanage.vo.AddFixVO" />
+	<resultMap id="CountVO"
+		type="com.gsitm.roommanage.vo.CountVO" />
+	<resultMap id="PagingVO"
+		type="com.gsitm.roommanage.vo.PagingVO" />
+	<resultMap id="UdConfVO"
+		type="com.gsitm.roommanage.vo.UdConfVO" />
+	<resultMap id="ImgVO" type="com.gsitm.roommanage.vo.ImgVO" />
+	<resultMap id="PagingSiteVO" type="com.gsitm.roommanage.vo.PagingSiteVO" />
+	<resultMap id="GetConfNameVO"
+		type="com.gsitm.roommanage.vo.GetConfNameVO" />
+	<insert id="insertConference" parameterType="ConfVO"
+		statementType="PREPARED">
+		INSERT INTO TB_MEETING_ROOM(
+		ROOM_NO
+		, WP_NO
+		, ROOM_ADDR
+		,
+		ROOM_NAME
+		, ROOM_COMM
+		, ROOM_KIND
+		, ROOM_PRICE
+		, ROOM_SIZE
+		, MAX_PEOPLE
+		,
+		NW_USE
+		, ROOM_STAT
+		, LONGITUDE
+		, LATITUDE
+		, MAIN_IMG_PATH)
+		VALUES(#{roomNo}
+		, #{siteNo}
+		, #{confAddr}
+		, #{confName}
+		, #{roomComm}
+		,
+		#{roomKind}
+		,
+		#{roomPrice}
+		, #{roomSize}
+		, #{maxPeople}
+		, #{network}
+		,
+		#{roomState}
+		,
+		#{longitude}
+		, #{latitude}
+		, #{mainImgPath})
+	</insert>
+	<insert id="insertSite" parameterType="SiteVO"
+		statementType="PREPARED">
+		INSERT INTO TB_WORK_PLACE(
+		WP_NO
+		, WP_NAME
+		, WP_ADDR
+		,
+		LONGITUDE
+		, LATITUDE
+		)
+		VALUES(
+		#{siteNo}
+		,#{siteName}
+		,#{siteAddr}
+		,#{longitude}
+		,#{latitude}
+		)
+	</insert>
+	<update id="updateConfInfo" parameterType="UdConfVO"
+		statementType="PREPARED">
+		UPDATE TB_MEETING_ROOM
+		SET ROOM_NAME = #{confName}
+		,
+		ROOM_COMM = #{roomComm}
+		, ROOM_PRICE =
+		#{roomPrice}
+		, NW_USE = #{network}
+		, MAIN_IMG_PATH = #{mainImgPath}
+		WHERE ROOM_NO = #{roomNo}
+	</update>
+	<insert id="insertImg" parameterType="ImgVO"
+		statementType="PREPARED">
+		INSERT INTO TB_IMG_PATH(
+		ROOM_NAME
+		, IMG_PATH
+		, IMG_NAME
+		,
+		ROOM_NO
+		)
+		VALUES(#{roomName}
+		,#{imgPath}
+		,#{imgName}
+		,#{roomNo}
+		)
+	</insert>
+	<insert id="insertFix" parameterType="AddFixVO"
+		statementType="PREPARED">
+		INSERT INTO TB_REQ_FIXTURES(
+		FIXTURE_NO
+		, ROOM_NO
+		,
+		QUANTITY
+		)
+		VALUES(#{fixNo}
+		,#{roomNo}
+		,#{quantity}
+		)
+	</insert>
+	<select id="readList" resultMap="ConfVO" parameterType="ConfVO"
+		statementType="PREPARED">
+		SELECT ROOM_NO roomNo
+		, WP_NO siteNo
+		, ROOM_NAME confName
+		, ROOM_COMM
+		roomComm
+		, ROOM_KIND
+		roomKind
+		, ROOM_PRICE roomPrice
+		, ROOM_SIZE roomSize
+		, MAX_PEOPLE
+		maxPeople
+		, NW_USE network
+		, ROOM_STAT roomState
+		,
+		MAIN_IMG_PATH
+		mainImgPath
+		FROM TB_MEETING_ROOM
+		<!-- WHERE ROOM_KIND = #{roomKind} -->
+	</select>
+	<select id="readList2" resultMap="ConfVO" parameterType="ConfVO"
+		statementType="PREPARED">
+		SELECT ROOM_NO roomNo
+		, WP_NO siteNo
+		, ROOM_NAME confName
+		, ROOM_COMM roomComm
+		, ROOM_KIND
+		roomKind
+		, ROOM_PRICE roomPrice
+		,
+		ROOM_SIZE roomSize
+		, MAX_PEOPLE
+		maxPeople
+		, NW_USE network
+		, ROOM_STAT
+		roomState
+		, MAIN_IMG_PATH
+		mainImgPath
+		FROM TB_MEETING_ROOM
+		WHERE ROOM_KIND
+		= #{roomKind}
+	</select>
+	<select id="detailList" resultMap="ConfVO"
+		parameterType="ConfVO" statementType="PREPARED">
+		SELECT ROOM_NO roomNo
+		, WP_NO
+		siteNo
+		, ROOM_NAME confName
+		, ROOM_COMM roomComm
+		, ROOM_KIND
+		roomKind
+		,
+		ROOM_PRICE roomPrice
+		, ROOM_SIZE roomSize
+		, MAX_PEOPLE
+		maxPeople
+		, NW_USE
+		network
+		, ROOM_ADDR confAddr
+		, ROOM_STAT roomState
+		,
+		MAIN_IMG_PATH
+		mainImgPath
+		FROM TB_MEETING_ROOM
+		WHERE ROOM_NO = #{roomNo}
+	</select>
+	<select id="getConfInfo" resultMap="ConfVO"
+		parameterType="ConfVO" statementType="PREPARED">
+		SELECT ROOM_NO roomNo
+		, WP_NO
+		siteNo
+		, ROOM_NAME confName
+		, ROOM_COMM roomComm
+		, ROOM_KIND
+		roomKind
+		,
+		ROOM_PRICE roomPrice
+		, ROOM_SIZE roomSize
+		, MAX_PEOPLE
+		maxPeople
+		, NW_USE
+		network
+		, ROOM_STAT roomState
+		FROM TB_MEETING_ROOM
+		WHERE ROOM_NAME =
+		#{confName}
+	</select>
+	<select id="selectList" resultMap="SiteVO"
+		parameterType="SiteVO" statementType="PREPARED">
+		SELECT WP_NAME siteName
+		, WP_ADDR
+		siteAddr
+		, LONGITUDE
+		, LATITUDE
+		FROM TB_WORK_PLACE
+	</select>
+	<select id="selectOption" resultMap="SiteVO"
+		parameterType="SiteVO" statementType="PREPARED">
+		SELECT WP_NO siteNo
+		, WP_NAME
+		siteName
+		, WP_ADDR siteAddr
+		, LONGITUDE
+		, LATITUDE
+		FROM
+		TB_WORK_PLACE
+		WHERE
+		WP_NAME = #{siteName}
+	</select>
+	<select id="detailImgs" resultMap="ImgVO" parameterType="ImgVO"
+		statementType="PREPARED">
+		SELECT ROOM_NAME
+		, IMG_PATH
+		, IMG_NAME
+		, ROOM_NO
+		FROM
+		TB_IMG_PATH
+		WHERE ROOM_NO = #{roomNo}
+	</select>
+	<select id="fixList" resultMap="FixVO" parameterType="FixVO"
+		statementType="PREPARED">
+		SELECT FIXTURE_NO fixNo
+		, FIXTURE_NAME fixName
+		, PRICE
+		price
+		FROM TB_FIXTURE
+	</select>
+	<select id="getRoomNo" resultType="int">
+		SELECT ROOM_SEQ.nextval
+		FROM
+		DUAL
+	</select>
+
+	<select id="getSiteNo" resultType="int">
+		SELECT SITE_SEQ.nextval
+		FROM
+		DUAL
+	</select>
+	<select id="getFixNo" resultType="String" parameterType="String">
+		select fixture_no
+		from
+		tb_fixture
+		where fixture_name = #{fixName}
+	</select>
+	<update id="updateSite" parameterType="SiteVO">
+		UPDATE TB_WORK_PLACE
+		SET
+		WP_NO = #{siteNo}
+		, WP_NAME = #{siteName}
+		, WP_ADDR = #{siteAddr}
+		,
+		LONGITUDE = #{longitude}
+		, LATITUDE = #{latitude}
+		WHERE WP_NO =
+		#{siteNo}
+	</update>
+	<update id="updateUseFix" parameterType="SiteVO">
+		UPDATE TB_REQ_FIXTURES
+		SET QUANTITY = #{quantity}
+		WHERE FIXTURE_NO = #{fixNo}
+		AND ROOM_NO =
+		#{roomNo}
+	</update>
+	<delete id="deleteSite" parameterType="String">
+		DELETE FROM TB_WORK_PLACE
+		WHERE WP_NO = #{siteNo}
+	</delete>
+	<delete id="deleteConf" parameterType="String">
+		DELETE FROM
+		TB_MEETING_ROOM
+		WHERE ROOM_NO = #{roomNo}
+	</delete>
+	<delete id="deleteUseFix" parameterType="String">
+		DELETE FROM
+		TB_REQ_FIXTURES
+		WHERE ROOM_NO = #{roomNo}
+	</delete>
+	<select id="getConfAddr" resultMap="SiteVO"
+		parameterType="SiteVO" statementType="PREPARED">
+		SELECT WP_ADDR siteAddr
+		FROM
+		TB_WORK_PLACE
+		WHERE WP_NO = #{siteNo}
+	</select>
+	<select id="getFixList" resultMap="GetFixVO"
+		parameterType="GetFixVO" statementType="PREPARED">
+		select f.fixture_name fixName
+		,
+		r.room_no roomNo
+		, r.fixture_no fixNo
+		, r.quantity quantity
+		from
+		TB_REQ_FIXTURES r
+		inner join TB_FIXTURE f
+		on r.fixture_no = f.fixture_no
+		where r.room_no = #{roomNo}
+	</select>
+	<select id="getConfName" resultMap="GetConfNameVO"
+		parameterType="GetConfNameVO" statementType="PREPARED">
+		SELECT ROOM_NAME confName
+		FROM TB_IMG_PATH
+		WHERE ROOM_NO = #{roomNo}
+	</select>
+	<select id="getConfList" resultMap="PagingVO"
+		parameterType="PagingVO">
+		<![CDATA[select RN
+		    , confName
+		    , roomComm
+		    , roomKind
+		    , roomNo
+		    , mainImgPath
+		from (select 
+		    	rownum as RN,
+		    	room_name confName,
+		    	room_comm roomComm,
+		    	room_kind roomKind,
+		    	room_no roomNo,
+		    	main_img_path mainImgPath
+		FROM
+		    tb_meeting_room
+	    WHERE room_kind = #{roomKind})
+		where RN between #{index} and #{defaultNum}
+		   ]]>
+	</select>
+	<select id="getCount" resultType="int" parameterType="String">
+		SELECT
+		COUNT(*) FROM TB_MEETING_ROOM
+		WHERE ROOM_KIND = #{roomKind}
+	</select>
+	<select id="getSiteCount" resultType="int">
+		SELECT COUNT(*) FROM
+		TB_WORK_PLACE
+	</select>
+	<select id="getSiteList" resultMap="PagingSiteVO"
+		parameterType="PagingSiteVO">
+		<![CDATA[select RN
+    					, siteNo
+   						, siteName
+    					, siteAddr
+				  from (select 
+    					rownum RN,
+    					WP_NO siteNo,
+    					WP_NAME siteName,
+    					WP_ADDR siteAddr
+						  FROM TB_WORK_PLACE)
+				  where RN between #{index} and #{defaultNum}]]>
+	</select>
+</mapper>

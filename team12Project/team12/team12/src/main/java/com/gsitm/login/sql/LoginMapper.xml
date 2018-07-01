@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.gsitm.login.mapper.LoginMapper">
+    <cache eviction="FIFO" flushInterval="60000" size="512"
+           readOnly="true"/>
+
+    <select id="loadUserByUsername" resultType="UserVO" parameterType="String">
+		SELECT EMP_NO
+    		   , EMP_NAME
+    		   , MANAGER_NO
+    		   , PHONE
+			   , EMAIL
+    	       , BIRTHDAY
+    		   , DEPT_NO
+    		   , ROLES
+    		   , PASSWORD
+		  FROM TB_EMP
+		 WHERE EMP_NO = #{username}
+	</select>
+</mapper>

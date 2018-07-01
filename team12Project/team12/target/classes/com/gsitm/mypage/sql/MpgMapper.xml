@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gsitm.mypage.mapper.MpgMapper">
+    <cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"/>
+	<resultMap id="UserVO" type="com.gsitm.login.vo.UserVO" />
+	<resultMap id="MpgReservVO" type="com.gsitm.mypage.vo.MpgReservVO" />
+	<resultMap id="MpgDeptVO" type="com.gsitm.mypage.vo.MpgDeptVO" />
+	<resultMap id="MpgEmpVO" type="com.gsitm.mypage.vo.MpgEmpVO" />
+	<resultMap id="MpgFixtureVO" type="com.gsitm.mypage.vo.MpgFixtureVO" />
+	<resultMap id="MpgSnackVO" type="com.gsitm.mypage.vo.MpgSnackVO" />
+	<resultMap id="MpgGuestVO" type="com.gsitm.mypage.vo.MpgGuestVO" />
+	
+    <select id="userView" resultMap="UserVO" parameterType="UserVO" statementType="PREPARED">
+		SELECT TE.EMP_NO
+    		   , TE.EMP_NAME
+    		   , TE.MANAGER_NO
+    		   , TE.PHONE
+			   , TE.EMAIL
+    	       , TO_CHAR(TE.BIRTHDAY,'yyyy"년" mm"월" dd"일"') AS BIRTHDAY
+    		   , TE.DEPT_NO
+    		   , TE.ROLES
+    		   , TE.PASSWORD
+               , TD.DEPT_NAME
+               , TD.DEPT_BUDGET
+		  FROM TB_EMP TE
+               , TB_DEPT TD
+		 WHERE EMP_NO = #{empNo}
+           AND TE.DEPT_NO = TD.DEPT_NO
+	</select>
+    <select id="userList" resultMap="UserVO" parameterType="UserVO" statementType="PREPARED">
+		SELECT TE.EMP_NO
+    		   , TE.EMP_NAME
+    		   , TE.MANAGER_NO
+    		   , TE.PHONE
+			   , TE.EMAIL
+    	       , TO_CHAR(TE.BIRTHDAY,'yyyy"년" mm"월" dd"일"') AS BIRTHDAY
+    		   , TE.DEPT_NO
+    		   , TE.ROLES
+    		   , TE.PASSWORD
+               , TD.DEPT_NAME
+		  FROM TB_EMP TE
+               , TB_DEPT TD
+		 WHERE TE.DEPT_NO = #{deptNo}
+           AND TE.DEPT_NO = TD.DEPT_NO
+	</select>
+    <select id="reservList" resultMap="MpgReservVO" parameterType="UserVO" statementType="PREPARED">
+		SELECT TR.RESERV_NO,
+			   TR.ROOM_NO,
+			   TO_CHAR(TR.START_DATE,'yyyy"년" mm"월" dd"일" HH24:MI') AS START_DATE,
+			   TO_CHAR(TR.END_DATE,'yyyy"년" mm"월" dd"일" HH24:MI') AS END_DATE,
+			   ROUND((TR.END_DATE - TR.START_DATE) * 24, 1)  AS TOTAL_TIME,
+		 	   TR.APPROVAL_1,
+		 	   TR.APPROVAL_2_1,
+		 	   TR.APPROVAL_2_2,
+			   TR.FIXTURE_USE,
+			   TR.SNACK_USE,
+			   TR.RESERV_CONTENT,
+               TR.LONG_TERM_YN,
+               TMR.ROOM_KIND
+	      FROM TB_RESERV TR,
+               TB_MEETING_PEOPLE TMP,
+               TB_MEETING_ROOM TMR
+         WHERE TR.RESERV_NO = TMP.RESERV_NO
+           AND TR.ROOM_NO = TMR.ROOM_NO
+           AND TMP.EMP_NO = #{empNo}
+      ORDER BY 3
+	</select>
+    <select id="reservDetail" resultMap="MpgReservVO" parameterType="MpgReservVO" statementType="PREPARED">
+		SELECT TR.RESERV_NO,
+			   TR.ROOM_NO,
+			   TO_CHAR(TR.START_DATE,'yyyy"년" mm"월" dd"일"') AS START_DATE,
+			   TO_CHAR(TR.END_DATE,'yyyy"년" mm"월" dd"일"') AS END_DATE,
+			   TO_CHAR(TR.START_DATE,'HH24:MI') AS START_TIME,
+			   TO_CHAR(TR.END_DATE,'HH24:MI') AS END_TIME,
+			   TO_CHAR((TR.START_DATE-20/24/60),'yyyy-mm-dd HH24:MI') AS START_HOUR,
+			   TO_CHAR(TR.START_DATE,'MI') AS START_MI,
+			   ROUND((TR.END_DATE - TR.START_DATE) * 24, 1)  AS TOTAL_TIME,
+		 	   TR.APPROVAL_1,
+		 	   TR.APPROVAL_2_1,
+		 	   TR.APPROVAL_2_2,
+			   TR.FIXTURE_USE,
+			   TR.SNACK_USE,
+			   TR.RESERV_CONTENT,
+			   TR.RESERV_CONTENT_2,
+               TR.LONG_TERM_YN,
+               TR.PRICE,
+               TMR.ROOM_KIND
+	      FROM TB_RESERV TR,
+	      	   TB_MEETING_ROOM TMR
+         WHERE TR.ROOM_NO = TMR.ROOM_NO
+           AND TR.RESERV_NO = #{reservNo}
+	</select>
+    <select id="deptList" resultMap="MpgDeptVO" parameterType="MpgReservVO" statementType="PREPARED">
+		SELECT TMT.DEPT_NO,
+      		   TD.DEPT_NAME
+	      FROM TB_MEETING_TEAM TMT,
+               TB_DEPT TD
+         WHERE TMT.DEPT_NO = TD.DEPT_NO
+           AND RESERV_NO = #{reservNo}
+	</select>
+    <select id="empList" resultMap="MpgEmpVO" parameterType="MpgReservVO" statementType="PREPARED">
+		SELECT TMP.EMP_NO,
+		       TE.EMP_NAME,
+		       TE.DEPT_NO
+		  FROM TB_MEETING_PEOPLE TMP,
+		       TB_EMP TE
+		 WHERE TMP.EMP_NO = TE.EMP_NO
+		   AND TMP.RESERV_NO = #{reservNo}
+	</select>
+    <select id="guestList" resultMap="MpgGuestVO" parameterType="MpgReservVO" statementType="PREPARED">
+		SELECT RESERV_NO,
+			   NAME
+		  FROM TB_MEETING_OUT
+		 WHERE RESERV_NO = #{reservNo}
+	</select>
+    <select id="fixtureList" resultMap="MpgFixtureVO" parameterType="MpgReservVO" statementType="PREPARED">
+		SELECT TUF.RESERV_NO 
+		       , R.FIXTURE_NO
+			   , R.ROOM_NO
+			   , F.FIXTURE_NAME
+			   , TUF.QUANTITY AS RESERV_QUANTITY
+			   , R.QUANTITY AS MAX_QUANTITY
+			   , F.PRICE
+		  FROM TB_USE_FIXTURE TUF
+		  JOIN TB_REQ_FIXTURES R
+			ON TUF.FIXTURE_NO = R.FIXTURE_NO
+		  JOIN TB_FIXTURE F
+			ON R.FIXTURE_NO = F.FIXTURE_NO
+	     WHERE R.ROOM_NO = #{roomNo}
+		   AND TUF.RESERV_NO = #{reservNo}
+	</select>
+    <select id="snackList" resultMap="MpgSnackVO" parameterType="MpgReservVO" statementType="PREPARED">
+		SELECT W.WP_NO
+			   , W.SNACK_NO
+			   , S.SNACK_NAME
+			   , W.QUANTITY AS MAX_QUANTITY
+			   , TUS.QUANTITY AS RESERV_QUANTITY
+			   , S.PRICE
+		  FROM TB_WP_SNACK W
+   		  JOIN TB_SNACK S
+			ON W.SNACK_NO = S.SNACK_NO
+		  JOIN TB_MEETING_ROOM TMR
+			ON W.WP_NO = TMR.WP_NO
+		  JOIN TB_USE_SNACK TUS
+			ON S.SNACK_NO = TUS.SNACK_NO
+		   AND TUS.RESERV_NO = #{reservNo}
+		   AND TMR.ROOM_NO = #{roomNo}
+	</select>
+	<update id="reservDel" parameterType="MpgReservVO" statementType="PREPARED">
+		{call
+	        declare
+	        begin
+	            DELETE FROM TB_RESERV WHERE RESERV_NO = #{reservNo};
+	            DELETE FROM TB_MEETING_PEOPLE WHERE RESERV_NO = #{reservNo};
+	            DELETE FROM TB_MEETING_TEAM WHERE RESERV_NO = #{reservNo};
+	            DELETE FROM TB_USE_FIXTURE WHERE RESERV_NO = #{reservNo};
+	            DELETE FROM TB_USE_SNACK WHERE RESERV_NO = #{reservNo};
+	        end
+	    }
+	</update>
+</mapper>
